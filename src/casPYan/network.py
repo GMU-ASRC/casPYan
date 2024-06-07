@@ -21,7 +21,7 @@ DEFAULT_DATA = {
             "Min_Weight": -127,
             "Max_Threshold": 127,
             "Min_Threshold": 0,
-            "Max_Synapse_Delay": 300,
+            "Max_Synapse_Delay": 255,
             "Min_Synapse_Delay": 0,
             "Max_Axon_Delay": 0,
             "Min_Axon_Delay": 0,
