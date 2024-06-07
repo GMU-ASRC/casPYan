@@ -39,11 +39,9 @@ class RateEncoder:
         x /= self.k
         return math.ceil(x)
 
-    def range(self, x: float):
-        return range(self.discretize_input(x))
-
     def get_spikes(self, x: float):
-        return [(self.amplitude, delay) for delay in self.range(x)]
+        upto = self.discretize_input(x)
+        return [(self.amplitude, delay) for delay in range(upto)]
 
 
 class RateDecoder:
