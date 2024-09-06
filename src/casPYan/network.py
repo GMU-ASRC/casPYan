@@ -90,7 +90,14 @@ def get_key(dict_view, item):
             return key  # this isn't optimal but whatever
 
 
-def connect(parent, child, weight=0, delay=0, **kwargs):
+def connect(parent, child, weight=0, delay=0, exist_ok=True, **kwargs):
+    duplicates = [edge for edge in parent.output_edges if edge.output_node == child]
+    if any(duplicates):
+        if exist_ok:  # remove duplicates
+            parent.output_edges = [edge for edge in parent.output_edges if edge.output_node != child]
+        else:
+            raise ValueError(f"Edge already exists between {parent} and {child}")  # noqa: EM102
+
     edge = Edge(child, weight, delay, **kwargs)
     parent.output_edges.append(edge)
     return edge
@@ -117,7 +124,7 @@ def step(nodes):
 def run(nodes: list[Node], steps: int):
     for node in nodes:  # clear histories. Tennlab does this each run()
         node.history = []
-    for i in range(steps):
+    for _i in range(steps):
         step(nodes)
 
 
@@ -145,8 +152,8 @@ def network_from_json(j: dict) -> (dict[Node], list[Node], list[Node]):
     # get mapping of property name to index in 'values' list i.e. m_n['Delay'] -> 1
     # need this because the network json represents the node/edge params as an
     # unordered list i.e. 'values': [127, -1, 0] <-- threshold, leak, delay
-    m_n = node_mapping = mapping(j['Properties']['node_properties'])
-    m_e = edge_mapping = mapping(j['Properties']['edge_properties'])
+    m_n = _node_mapping = mapping(j['Properties']['node_properties'])
+    m_e = _edge_mapping = mapping(j['Properties']['edge_properties'])
 
     # make nodes from json
     j_nodes = sorted(j['Nodes'], key=lambda v: v['id'])
@@ -204,8 +211,8 @@ def to_tennlab(
             'Delay': edge.delay
         }
 
-    m_n = node_mapping = mapping(properties['Properties']['node_properties'])
-    m_e = edge_mapping = mapping(properties['Properties']['edge_properties'])
+    m_n = _node_mapping = mapping(properties['Properties']['node_properties'])
+    m_e = _edge_mapping = mapping(properties['Properties']['edge_properties'])
 
     j_nodes = [
         {
