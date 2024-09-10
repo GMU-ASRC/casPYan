@@ -13,3 +13,8 @@ class Edge:
         self.output_node.intake.append((sum(ss) * self.weight, 0))
         # and then forget only those spikes
         self.cache = [(amp, delay) for amp, delay in self.cache if not delay < 0]
+
+    def __repr__(self):
+        output = f"{id(self.output_node):x}"[-4:]
+        return f"{self.__class__} at {id(self):x} w/ Weight: {self.weight}, Delay: {self.delay}, To: {output}"
+

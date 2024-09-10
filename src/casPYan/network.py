@@ -91,16 +91,19 @@ def get_key(dict_view, item):
 
 
 def connect(parent, child, weight=0, delay=0, exist_ok=True, **kwargs):
+    new_edge = Edge(child, weight, delay, **kwargs)
+
     duplicates = [edge for edge in parent.output_edges if edge.output_node == child]
     if any(duplicates):
-        if exist_ok:  # remove duplicates
+        if exist_ok == 'add':
+            pass  # continue to add the duplicate edge
+        elif exist_ok:  # remove duplicates
             parent.output_edges = [edge for edge in parent.output_edges if edge.output_node != child]
         else:
-            raise ValueError(f"Edge already exists between {parent} and {child}")  # noqa: EM102
+            raise ValueError(f"Edge already exists between {parent} and {child}:\nexisting: {duplicates}\nnew: {new_edge}")  # noqa: EM102
 
-    edge = Edge(child, weight, delay, **kwargs)
-    parent.output_edges.append(edge)
-    return edge
+    parent.output_edges.append(new_edge)
+    return new_edge
 
 
 def make_layer(n) -> list[Node]:
