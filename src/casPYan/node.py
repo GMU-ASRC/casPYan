@@ -1,3 +1,6 @@
+from .util import NONCE1
+
+
 class Node:
     int8 = True
 
@@ -11,8 +14,8 @@ class Node:
         self.history = []  # record of fire/no fire for each timestep.
         # history may be wiped by external methods.
 
-        self.callback_prestep_fire = lambda x: None
-        self.callback_prestep_integrate = lambda x: None
+        self.callback_prestep_fire = NONCE1
+        self.callback_prestep_integrate = NONCE1
 
     def step_fire(self):
         # check if this neuron meets the criteria to fire, and record if it do.
