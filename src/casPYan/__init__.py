@@ -5,3 +5,5 @@ from .node import apply_spike
 from .network import *
 
 from .feedforward import *
+
+from .processor import Processor
