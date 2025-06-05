@@ -18,10 +18,12 @@ def fully_connect_layers(parents: list[Node], children: list[Node]):
 def feedforward_fc(
     n_inputs: int,
     n_outputs: int,
-    n_hidden_layers: list = [],
+    n_hidden_layers: list | None = None,
 ):
     inputs: list[Node] = make_layer(n_inputs)
     outputs: list[Node] = make_layer(n_outputs)
+    if n_hidden_layers is None:
+        n_hidden_layers = []
     hidden_layers: list[list[Node]] = [make_layer(n) for n in n_hidden_layers]
 
     # make connections
@@ -33,7 +35,7 @@ def feedforward_fc(
         # make connections between hidden layers
         layer = iter(hidden_layers)
         a = next(layer, None)
-        while True:
+        while a is not None:
             b = next(layer, None)
             if b is None:
                 break

@@ -17,4 +17,3 @@ class Edge:
     def __repr__(self):
         output = f"{id(self.output_node):x}"[-4:]
         return f"{self.__class__} at {id(self):x} w/ Weight: {self.weight}, Delay: {self.delay}, To: {output}"
-

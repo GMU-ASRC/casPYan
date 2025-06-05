@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import namedtuple
 from .edge import Edge
 from .node import Node
@@ -147,7 +149,7 @@ def vectors(nodes: list[Node]):
     return [node.t_fires for node in nodes]
 
 
-def network_from_json(j: dict) -> (dict[Node], list[Node], list[Node]):
+def network_from_json(j: dict) -> tuple[dict[int, Node], list[Node], list[Node]]:
     # read a Tennlab json network and create it.
     def mapping(props: list[dict]):
         return {prop['name']: prop['index'] for prop in props}

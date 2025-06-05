@@ -65,7 +65,7 @@ class Node:
 
     def __repr__(self):
         connected = [f"{id(e.output_node):x}"[-4:] for e in self.output_edges]
-        return f"Node at {id(self):x} w/ Threshold: {self.threshold}, Delay: {self.delay}, Leak: {self.leak}, children: {connected}"
+        return f"Node at {id(self):x} w/ Threshold: {self.threshold}, Delay: {self.delay}, Leak: {self.leak}, children: {connected}"  # noqa
 
 
 def apply_spike(node, amplitude, delay, int8=True):
