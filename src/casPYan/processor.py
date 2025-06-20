@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 
 from .network import step, run, charges, fires, lastfires, vectors, network_from_json

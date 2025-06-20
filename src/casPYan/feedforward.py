@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .network import connect, make_layer
 
 # typing

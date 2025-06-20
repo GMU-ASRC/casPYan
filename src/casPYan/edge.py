@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class Edge:
     def __init__(self, child, weight, delay: int = 0):
         self.weight = weight
