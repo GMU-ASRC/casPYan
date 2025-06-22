@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .util import NONCE1
+from .util import NONCE1, SpikeQueue
 
 
 class Node:
@@ -11,7 +11,7 @@ class Node:
         self.threshold = threshold  # if charge > threshold, fire.
         self.delay = delay
         self.leak = None if leak == -1 else leak  # None or -1 disables leak.
-        self.intake = []  # waiting area for incoming spikes to be dealt with.
+        self.intake = SpikeQueue()  # waiting area for incoming spikes to be dealt with.
         self.output_edges = []  # outgoing connections
         self.history = []  # record of fire/no fire for each timestep.
         # history may be wiped by external methods.
@@ -30,8 +30,6 @@ class Node:
 
     def step_integrate(self):
         self.callback_prestep_integrate(self)
-        # count down time for delayed spikes
-        self.intake = [(amp, delay - 1) for amp, delay in self.intake]
         # apply leak. charge = 2^(-t/tau) where t is time since last fire.
         if self.leak is not None:
             # WARNING: behavior differs from real caspian here.
@@ -41,9 +39,9 @@ class Node:
             self.charge = self.charge * 2 ** (-1 / (2 ** self.leak))
             self.charge = int(self.charge) if self.int8 else self.charge
         # add/integrate charge from spikes if they've just "arrived"
-        self.charge += sum([amp for amp, delay in self.intake if delay < 0])
+        self.charge += sum(self.intake[0])
         # and then delete those spikes from cache
-        self.intake = [(amp, delay) for amp, delay in self.intake if not delay < 0]
+        self.intake.step()
 
     def fire(self):
         for edge in self.output_edges:

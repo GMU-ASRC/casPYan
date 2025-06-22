@@ -1,21 +1,20 @@
 from __future__ import annotations
 
+from .util import SpikeQueue
+
 
 class Edge:
     def __init__(self, child, weight, delay: int = 0):
         self.weight = weight
         self.delay = delay
-        self.cache = []  # waiting area for delayed spikes: [(amplitude, TTL), ]
+        self.cache = SpikeQueue()  # waiting area for delayed spikes: [(amplitude, TTL), ]
         self.output_node = child  # destination for spikes
 
     def step(self):
-        # count down time for delayed spikes (subtract 1 from the TTL of the spike)
-        self.cache = [(amp, delay - 1) for amp, delay in self.cache]
         # send spikes whose time has come
-        ss = [amp for amp, delay in self.cache if delay < 0]
-        self.output_node.intake.append((sum(ss) * self.weight, 0))
-        # and then forget only those spikes
-        self.cache = [(amp, delay) for amp, delay in self.cache if not delay < 0]
+        self.output_node.intake.add_spike(sum(self.cache[0]) * self.weight, 0)
+        # count down and then forget those spikes
+        self.cache.step()
 
     def __repr__(self):
         output = f"{id(self.output_node):x}"[-4:]
