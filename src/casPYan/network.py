@@ -274,4 +274,11 @@ class TennNetProxy:
         self.net = j
 
     def get_data(self, key):
-        return self.net.get(key)
+        return self.net['Associated_Data'][key]
+
+    def set_data(self, key, value):
+        self.net['Associated_Data'][key] = value
+
+    def to_str(self):
+        import json
+        return json.dumps(self.net)
