@@ -260,3 +260,18 @@ def to_tennlab(
     d.update({'Network_Values': []})
 
     return d
+
+
+class TennNetProxy:
+    def __init__(self, net=None):
+        self.nodes = None
+        self.inputs = None
+        self.outputs = None
+        self.net = net
+
+    def from_json(self, j):
+        self.nodes, self.inputs, self.outputs = network_from_json(j)
+        self.net = j
+
+    def get_data(self, key):
+        return self.net.get(key)
