@@ -3,7 +3,7 @@ from __future__ import annotations
 from .util import SpikeQueue
 
 
-class Edge:
+class EdgeBase:
     def __init__(self, child, weight, delay: int = 0):
         self.weight = weight
         self.delay = delay
@@ -15,6 +15,9 @@ class Edge:
         self.output_node.intake.add_spike(self.cache.current * self.weight, 0)
         # count down and then forget those spikes
         self.cache.step()
+
+
+class Edge(EdgeBase):
 
     def __repr__(self):
         output = f"{id(self.output_node):x}"[-4:]

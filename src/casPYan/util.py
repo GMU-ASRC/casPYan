@@ -15,7 +15,7 @@ def ID1(x):
     return x
 
 
-class SpikeQueue:
+class SpikeQueueBase:
     def __init__(self, spikes=None):
         if spikes is None:
             self.spikes = {}
@@ -64,24 +64,8 @@ class SpikeQueue:
         for value, time in spikes:
             self.add_spike(value, time)
 
-    def __delitem__(self, key):
-        if isinstance(key, int):
-            del self.spikes[key + self.t]
-        elif isinstance(key, slice):
-            for i in range(0, key.stop)[key]:
-                if i + self.t in self.spikes:
-                    del self.spikes[i + self.t]
-        else:
-            del self.spikes[key]
-
     def __len__(self):
         return len(self.spikes)
-
-    def __iter__(self):
-        return iter(self.spikes)
-
-    def __repr__(self):
-        return f"{self.__class__.__name__} at {id(self):x} with {len(self)} spikes"
 
     def __contains__(self, key):
         return key + self.t in self.spikes
@@ -124,11 +108,6 @@ class SpikeQueue:
     def current(self):
         return self.spikes.get(self.t, 0.0)
 
-    def __call__(self, dt: int = 1, delete: bool = True):
-        temp = self[0:dt]
-        self.step(dt, delete)
-        return temp
-
     def append(self, value):
         if isinstance(value, (tuple, list)):
             self.add_spike(*value)
@@ -137,3 +116,28 @@ class SpikeQueue:
         else:
             msg = f"Cannot append {value} of type {type(value)} to {self}"
             raise ValueError(msg)
+
+
+# add functionality that cannot be supported by numba
+class SpikeQueue(SpikeQueueBase):
+
+    def __repr__(self):
+        return f"{self.__class__.__name__} at {id(self):x} with {len(self)} spikes"
+
+    def __call__(self, dt: int = 1, delete: bool = True):
+        temp = self[0:dt]
+        self.step(dt, delete)
+        return temp
+
+    def __delitem__(self, key):
+        if isinstance(key, int):
+            del self.spikes[key + self.t]
+        elif isinstance(key, slice):
+            for i in range(0, key.stop)[key]:
+                if i + self.t in self.spikes:
+                    del self.spikes[i + self.t]
+        else:
+            del self.spikes[key]
+
+    def __iter__(self):
+        return iter(self.spikes)

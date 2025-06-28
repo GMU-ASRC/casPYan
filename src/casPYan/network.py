@@ -92,8 +92,8 @@ def get_key(dict_view, item):
             return key  # this isn't optimal but whatever
 
 
-def connect(parent, child, weight=0, delay=0, exist_ok=True, **kwargs):
-    new_edge = Edge(child, weight, delay, **kwargs)
+def connect(parent, child, weight=0, delay=0, exist_ok=True, edgetype=Edge, **kwargs):
+    new_edge = edgetype(child, weight, delay, **kwargs)
 
     duplicates = [edge for edge in parent.output_edges if edge.output_node == child]
     if any(duplicates):
@@ -149,7 +149,7 @@ def vectors(nodes: list[Node]):
     return [node.t_fires for node in nodes]
 
 
-def network_from_json(j: dict) -> tuple[dict[int, Node], list[Node], list[Node]]:
+def network_from_json(j: dict, nodetype=Node, edgetype=Edge) -> tuple[dict[int, Node], list[Node], list[Node]]:
     # read a Tennlab json network and create it.
     def mapping(props: list[dict]):
         return {prop['name']: prop['index'] for prop in props}
@@ -163,7 +163,7 @@ def network_from_json(j: dict) -> tuple[dict[int, Node], list[Node], list[Node]]
     # make nodes from json
     j_nodes = sorted(j['Nodes'], key=lambda v: v['id'])
     nodes = [(n['id'], n['values']) for n in j_nodes]
-    nodes = {idx: Node(
+    nodes = {idx: nodetype(
         threshold=v[m_n["Threshold"]],
         delay=v[m_n["Delay"]],
         leak=v[m_n["Leak"]],
@@ -176,6 +176,7 @@ def network_from_json(j: dict) -> tuple[dict[int, Node], list[Node], list[Node]]
             nodes[edge['to']],
             weight=edge['values'][m_e['Weight']],
             delay=edge['values'][m_e['Delay']],
+            edgetype=edgetype,
         )
 
     inputs = [nodes[i] for i in j['Inputs']]

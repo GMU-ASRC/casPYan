@@ -3,7 +3,7 @@ from __future__ import annotations
 from .util import NONCE1, SpikeQueue
 
 
-class Node:
+class NodeBase:
     int8 = True
 
     def __init__(self, threshold=0, leak=None, delay=None,):
@@ -63,9 +63,13 @@ class Node:
     def t_fires(self):  # indexes of fires
         return [i for i, fired in enumerate(self.history) if fired]
 
+
+class Node(NodeBase):
+
     def __repr__(self):
         connected = [f"{id(e.output_node):x}"[-4:] for e in self.output_edges]
         return f"Node at {id(self):x} w/ Threshold: {self.threshold}, Delay: {self.delay}, Leak: {self.leak}, children: {connected}"  # noqa
+
 
 
 def apply_spike(node, amplitude, delay, int8=True):
