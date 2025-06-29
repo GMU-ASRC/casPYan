@@ -87,6 +87,12 @@ casPYan.connect(nodes[0], nodes[1], weight=0.5, delay=0)
 casPYan.run(nodes, 10)
 
 spikes = [node.history for node in outputs]
+
+# saving and loading node representations
+json_dict = casPYan.to_tennlab(nodes, inputs, outputs)
+# json_dict is a Python dict that can be saved to a json file
+# It is similar to what is loaded by casPYan.network_from_json
+nodes, inputs, outputs = casPYan.network_from_json(json_dict)
 ```
 
 See the following files for more low-level functions:
