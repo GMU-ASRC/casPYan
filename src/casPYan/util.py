@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 from copy import copy, deepcopy
 import numbers
+
+from typing import TYPE_CHECKING, overload, cast
 
 
 def NONCE():
@@ -22,35 +25,47 @@ class SpikeQueue:
         elif isinstance(spikes, dict):
             self.spikes = spikes
         elif isinstance(spikes, list):
-            pass
+            self.spikes = {}
+            self.add_spikes(spikes)
+        else:
+            msg = f"Cannot initialize {self} with {spikes} of type {type(spikes)}"
+            raise ValueError(msg)
 
-        self.spikes = spikes or {}
+        self.t = 0
+
+    if TYPE_CHECKING:
+        @overload
+        def __getitem__(self, key: int) -> float: ...
+        @overload
+        def __getitem__(self, key: slice) -> list[float]: ...
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self.spikes.get(key, [])
+            return self.spikes.get(key + self.t, 0.0)
         elif isinstance(key, slice):
-            return [self.spikes.get(i, []) for i in range(0, key.stop)[key]]
-        else:
-            return self.spikes.get(key, [])
+            return [self.spikes.get(i + self.t, 0.0) for i in range(0, key.stop)[key]]
+        msg = f"range indices must be integers or slices, not {type(key)}"
+        raise TypeError(msg)
 
-    def __setitem__(self, time, value):
+    def __setitem__(self, time: int | slice, value: float | list[float]):
         if isinstance(time, int):
-            self.add_spike(value, time)
+            value = cast(float, value)
+            self.add_spike(value, time + self.t)
         elif isinstance(time, slice):
             for i in range(0, time.stop)[time]:
-                self.spikes[i] = value[i]
-        else:
-            self.spikes[time] = value
+                self.spikes[i + self.t] = value[i]
+        msg = f"range indices must be integers or slices, not {type(time)}"
+        raise TypeError(msg)
 
     def add_spike(self, value: float, time: int = 0):
         if time < 0:
             msg = f"Cannot queue spike {time} time steps in the past to {self}"
             raise ValueError(msg)
+        time += self.t
         if time in self.spikes:
-            self.spikes[time].append(value)
+            self.spikes[time] += value
         else:
-            self.spikes[time] = [value]
+            self.spikes[time] = value
 
     def add_spikes(self, spikes: list[tuple[float, int]] | dict[float, int]):
         if isinstance(spikes, dict):
@@ -60,10 +75,11 @@ class SpikeQueue:
 
     def __delitem__(self, key):
         if isinstance(key, int):
-            del self.spikes[key]
+            del self.spikes[key + self.t]
         elif isinstance(key, slice):
             for i in range(0, key.stop)[key]:
-                del self.spikes[i]
+                if i + self.t in self.spikes:
+                    del self.spikes[i + self.t]
         else:
             del self.spikes[key]
 
@@ -77,7 +93,7 @@ class SpikeQueue:
         return f"{self.__class__.__name__} at {id(self):x} with {len(self)} spikes"
 
     def __contains__(self, key):
-        return key in self.spikes
+        return key + self.t in self.spikes
 
     def __eq__(self, value):
         return self.spikes == value
@@ -91,29 +107,50 @@ class SpikeQueue:
             new.add_spikes(value.spikes if isinstance(value, SpikeQueue) else value)
             return new
         else:
-            raise ValueError(f"Cannot add {value} of type {type(value)} to {self}")
+            msg = f"Cannot add {value} of type {type(value)} to {self}"
+            raise ValueError(msg)
 
     def __iadd__(self, value):
         if isinstance(value, (SpikeQueue, dict, list)):
             self.add_spikes(value.spikes if isinstance(value, SpikeQueue) else value)
             return self
         else:
-            raise ValueError(f"Cannot add {value} of type {type(value)} to {self}")
+            msg = f"Cannot add {value} of type {type(value)} to {self}"
+            raise ValueError(msg)
 
     def step(self, dt: int = 1, delete: bool = True):
         if dt == 0:
             return
         if dt == 1:
-            if 0 in self.spikes and delete:
-                del self.spikes[0]
-            self.spikes = {k - 1: v for k, v in self.spikes.items()}
+            if delete and self.t in self.spikes:
+                del self.spikes[self.t]
+            self.t += 1
         else:
-            self.spikes = {k - dt: v for k, v in self.spikes.items() if not delete or (k - dt) >= 0}
+            if delete:
+                del self[self.t : self.t + dt]
+            self.t += dt
+
+    @property
+    def current(self) -> float:
+        """Return spikes arriving at the current time step.
+
+        Returns
+        -------
+        float
+            The sum of amplitudes of all spikes arriving at the current time step.
+        """
+        return self.spikes.get(self.t, 0.0)
+
+    def __call__(self, dt: int = 1, delete: bool = True):
+        temp = self[0:dt]
+        self.step(dt, delete)
+        return temp
 
     def append(self, value):
         if isinstance(value, (tuple, list)):
             self.add_spike(*value)
         elif isinstance(value, numbers.Real):
-            self.add_spike(0, value)
+            self.add_spike(float(value), 0)
         else:
-            raise ValueError(f"Cannot append {value} of type {type(value)} to {self}")
+            msg = f"Cannot append {value} of type {type(value)} to {self}"
+            raise ValueError(msg)

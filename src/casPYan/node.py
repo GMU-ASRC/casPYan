@@ -39,7 +39,7 @@ class Node:
             self.charge = self.charge * 2 ** (-1 / (2 ** self.leak))
             self.charge = int(self.charge) if self.int8 else self.charge
         # add/integrate charge from spikes if they've just "arrived"
-        self.charge += sum(self.intake[0])
+        self.charge += self.intake.current
         # and then delete those spikes from cache
         self.intake.step()
 
