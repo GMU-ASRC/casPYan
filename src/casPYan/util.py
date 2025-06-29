@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 from copy import copy, deepcopy
 import numbers
+
+from typing import TYPE_CHECKING, overload, cast
 
 
 def NONCE():
@@ -30,22 +33,29 @@ class SpikeQueue:
 
         self.t = 0
 
-    def __getitem__(self, key) -> float:
+    if TYPE_CHECKING:
+        @overload
+        def __getitem__(self, key: int) -> float: ...
+        @overload
+        def __getitem__(self, key: slice) -> list[float]: ...
+
+    def __getitem__(self, key):
         if isinstance(key, int):
             return self.spikes.get(key + self.t, 0.0)
         elif isinstance(key, slice):
             return [self.spikes.get(i + self.t, 0.0) for i in range(0, key.stop)[key]]
-        else:
-            return self.spikes.get(key, 0.0)
+        msg = f"range indices must be integers or slices, not {type(key)}"
+        raise TypeError(msg)
 
-    def __setitem__(self, time, value):
+    def __setitem__(self, time: int | slice, value: float | list[float]):
         if isinstance(time, int):
+            value = cast(float, value)
             self.add_spike(value, time + self.t)
         elif isinstance(time, slice):
             for i in range(0, time.stop)[time]:
                 self.spikes[i + self.t] = value[i]
-        else:
-            self.spikes[time + self.t] = value
+        msg = f"range indices must be integers or slices, not {type(time)}"
+        raise TypeError(msg)
 
     def add_spike(self, value: float, time: int = 0):
         if time < 0:
@@ -121,7 +131,14 @@ class SpikeQueue:
             self.t += dt
 
     @property
-    def current(self):
+    def current(self) -> float:
+        """Return spikes arriving at the current time step.
+
+        Returns
+        -------
+        float
+            The sum of amplitudes of all spikes arriving at the current time step.
+        """
         return self.spikes.get(self.t, 0.0)
 
     def __call__(self, dt: int = 1, delete: bool = True):
