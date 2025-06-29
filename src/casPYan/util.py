@@ -43,8 +43,7 @@ class SpikeQueue:
             self.add_spike(value, time + self.t)
         elif isinstance(time, slice):
             for i in range(0, time.stop)[time]:
-                i += self.t
-                self.spikes[i] = value[i]
+                self.spikes[i + self.t] = value[i]
         else:
             self.spikes[time + self.t] = value
 
@@ -117,7 +116,8 @@ class SpikeQueue:
                 del self.spikes[self.t]
             self.t += 1
         else:
-            del self.spikes[self.t : self.t + dt]
+            if delete:
+                del self[self.t : self.t + dt]
             self.t += dt
 
     @property
