@@ -6,7 +6,7 @@ from .util import NONCE1, SpikeQueue
 class Node:
     int8 = True
 
-    def __init__(self, threshold=0, leak=None, delay=None,):
+    def __init__(self, threshold=0., leak=None, delay=None,):
         self.charge = 0
         self.threshold = threshold  # if charge > threshold, fire.
         self.delay = delay
