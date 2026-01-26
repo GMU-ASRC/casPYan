@@ -12,7 +12,8 @@ class Edge:
 
     def step(self):
         # send spikes whose time has come
-        self.output_node.intake.add_spike(self.cache.current * self.weight, 0)
+        if (self.cache.current != 0):
+            self.output_node.intake.add_spike(self.cache.current * self.weight, 0)
         # count down and then forget those spikes
         self.cache.step()
 

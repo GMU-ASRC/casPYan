@@ -22,10 +22,15 @@ class SpikeQueue:
     def __init__(self, spikes=None):
         if spikes is None:
             self.spikes = {}
+            self.spikeCount = {}
         elif isinstance(spikes, dict):
             self.spikes = spikes
+            self.spikeCount = {}
+            for k, v in self.spikes:
+                self.spikeCount[k] = 1
         elif isinstance(spikes, list):
             self.spikes = {}
+            self.spikeCount = {}
             self.add_spikes(spikes)
         else:
             msg = f"Cannot initialize {self} with {spikes} of type {type(spikes)}"
@@ -66,6 +71,11 @@ class SpikeQueue:
             self.spikes[time] += value
         else:
             self.spikes[time] = value
+
+        if time in self.spikeCount:
+            self.spikeCount[time] += 1
+        else:
+            self.spikeCount[time] = 1
 
     def add_spikes(self, spikes: list[tuple[float, int]] | dict[float, int]):
         if isinstance(spikes, dict):
@@ -141,6 +151,10 @@ class SpikeQueue:
         """
         return self.spikes.get(self.t, 0.0)
 
+    @property
+    def currentCount(self) -> int:
+        return self.spikeCount.get(self.t, 0)
+    
     def __call__(self, dt: int = 1, delete: bool = True):
         temp = self[0:dt]
         self.step(dt, delete)

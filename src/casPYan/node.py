@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from .util import NONCE1, SpikeQueue
 
-
 class Node:
-    int8 = True
+    int8 = False
 
     def __init__(self, threshold=0, leak=None, delay=None,):
         self.charge = 0
@@ -22,7 +21,7 @@ class Node:
     def step_fire(self):
         # check if this neuron meets the criteria to fire, and record if it do.
         self.callback_prestep_fire(self)
-        if self.charge > self.threshold:
+        if int(self.charge) > self.threshold:
             self.fire()
             self.history.append(1)
         else:
@@ -39,6 +38,8 @@ class Node:
             self.charge = self.charge * 2 ** (-1 / (2 ** self.leak))
             self.charge = int(self.charge) if self.int8 else self.charge
         # add/integrate charge from spikes if they've just "arrived"
+        if (self.intake.currentCount > 0):
+            self.charge = int(self.charge)
         self.charge += self.intake.current
         # and then delete those spikes from cache
         self.intake.step()
