@@ -19,3 +19,20 @@ Issues = "https://github.com/pypa/sampleproject/issues"
 
 [project.license]
 file = "LICENSE"
+
+[tool.tox]
+env_list = [
+    'py39',
+    'py313',
+]
+
+[tool.tox.gh.python]
+"3.9" = ['py39',]
+"3.13" = ['py313']
+
+[tool.tox.env_run_base]
+description = "Run tests under {base_python}"
+change_dir="tests"
+commands = [
+  ["python", "test_and_or.py"],
+]
