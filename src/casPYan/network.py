@@ -92,7 +92,7 @@ def get_key(dict_view, item):
             return key  # this isn't optimal but whatever
 
 
-def connect(parent, child, weight=0, delay=0, exist_ok=True, **kwargs):
+def connect(parent, child, weight=0., delay=0, exist_ok=True, **kwargs):
     new_edge = Edge(child, weight, delay, **kwargs)
 
     duplicates = [edge for edge in parent.output_edges if edge.output_node == child]
