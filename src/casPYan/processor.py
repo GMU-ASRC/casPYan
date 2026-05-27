@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 from .network import step, run, charges, fires, lastfires, vectors, network_from_json
-from .network import to_tennlab, DEFAULT_DATA, DEFAULT_NETWORK_PROPERTIES
+from .network import to_tennlab, DEFAULT_DATA, DEFAULT_CASPIAN_PROPERTIES
 
 from typing import Any
 
@@ -34,7 +34,7 @@ class Processor:
         if data is None:
             data = DEFAULT_DATA if self.data == {} else self.data
         if properties is None:
-            properties = DEFAULT_NETWORK_PROPERTIES if self.properties == {} else self.properties
+            properties = DEFAULT_CASPIAN_PROPERTIES if self.properties == {} else self.properties
         return to_tennlab(self.nodes, self.inputs, self.outputs, data, properties)
 
     def get_data(self, key):
@@ -50,17 +50,37 @@ class Processor:
     def run(self, steps: int):
         run(self.nodes, steps)
 
+    @property
     def charges(self):
         return charges(self.nodes)
 
+    @property
     def fires(self):
         return fires(self.nodes)
 
+    @property
     def lastfires(self):
         return lastfires(self.nodes)
 
+    @property
     def vectors(self):
         return vectors(self.nodes)
 
-    def neuron_counts(self):
+    @property
+    def counts(self):
         return [node.fires for node in self.nodes]
+
+    def neuron_counts(self):
+        return self.counts
+
+    def neuron_vectors(self):
+        return self.vectors
+
+    def neuron_charges(self):
+        return self.charges
+
+    def neuron_fires(self):
+        return self.fires
+
+    def neuron_lastfires(self):
+        return self.lastfires

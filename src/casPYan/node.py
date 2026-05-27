@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .util import NONCE1, SpikeQueue
+from .util import SpikeQueue
+
 
 class Node:
     int8 = False
@@ -15,12 +16,13 @@ class Node:
         self.history = []  # record of fire/no fire for each timestep.
         # history may be wiped by external methods.
 
-        self.callback_prestep_fire = NONCE1
-        self.callback_prestep_integrate = NONCE1
+        self.callback_prestep_fire = None
+        self.callback_prestep_integrate = None
 
     def step_fire(self):
         # check if this neuron meets the criteria to fire, and record if it do.
-        self.callback_prestep_fire(self)
+        if self.callback_prestep_fire is not None:
+            self.callback_prestep_fire(self)
         if int(self.charge) > self.threshold:
             self.fire()
             self.history.append(1)
@@ -28,7 +30,8 @@ class Node:
             self.history.append(0)
 
     def step_integrate(self):
-        self.callback_prestep_integrate(self)
+        if self.callback_prestep_integrate is not None:
+            self.callback_prestep_integrate(self)
         # apply leak. charge = 2^(-t/tau) where t is time since last fire.
         if self.leak is not None:
             # WARNING: behavior differs from real caspian here.
